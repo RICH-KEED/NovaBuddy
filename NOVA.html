@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nova Control Panel</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #1e1e2e;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    h1 {
+      color: #ffcc00;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    .section {
+      margin: 25px 0;
+      padding: 20px;
+      background: #2a2a3a;
+      border-radius: 12px;
+      border: 1px solid #3a3a4a;
+    }
+    h2 {
+      color: #00ffcc;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+    }
+    .button {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      background: linear-gradient(135deg, #ff6600, #ff4500);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-align: center;
+      text-decoration: none;
+    }
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
+    }
+    .settings-panel input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .action-container {
+      position: relative;
+      margin: 20px 0;
+    }
+    .dynamic-section {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 0;
+      right: 0;
+      background: #222235;
+      padding: 20px;
+      border-radius: 10px;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      border: 1px solid #3a3a4a;
+    }
+    .hidden {
+      display: none;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+    input,
+    select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: #1e1e2e;
+      color: white;
+      border: 2px solid #3a3a4a;
+      border-radius: 8px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+    input:focus,
+    select:focus {
+      border-color: #ff6600;
+      outline: none;
+    }
+    .button:disabled {
+      background: #3a3a4a;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .settings-icon {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+      font-size: 24px;
+      color: #ffcc00;
+      z-index: 1000;
+      transition: transform 0.3s;
+    }
+    .settings-icon:hover {
+      transform: rotate(90deg);
+    }
+    .settings-panel {
+      display: none;
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      background: #2a2a3a;
+      padding: 20px;
+      border-radius: 12px;
+      width: 300px;
+      z-index: 999;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .error-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff4444;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 8px;
+      display: none;
+      z-index: 1001;
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
+    .response-box {
+      margin-top: 10px;
+      padding: 15px;
+      background: #222235;
+      border-radius: 8px;
+      border: 1px solid #3a3a4a;
+      font-size: 1em;
+      color: #ffffff;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div class="settings-icon" onclick="toggleSettings()">⚙️</div>
+  <div class="settings-panel" id="settingsPanel">
+    <h3>API Settings</h3>
+    <input type="text" id="baseUrl" placeholder="http://localhost:5000" />
+    <button class="button" onclick="saveSettings()">Save Settings</button>
+  </div>
+
+  <div class="error-toast" id="errorToast"></div>
+
+  <div class="container">
+    <h1>NOVA Control Panel</h1>
+
+    <div class="section">
+      <h2>Open Apps</h2>
+      <button class="button" onclick="callAPI('/open_chrome')">Chrome</button>
+      <button class="button" onclick="callAPI('/open_vscode')">VS Code</button>
+      <button class="button" onclick="callAPI('/open_spotify')">Spotify</button>
+      <button class="button" onclick="callAPI('/open_excel')">Excel</button>
+      <button class="button" onclick="callAPI('/open_word')">Word</button>
+      <button class="button" onclick="callAPI('/open_powerpoint')">PowerPoint</button>
+      <button class="button" onclick="callAPI('/open_file_manager')">File Manager</button>
+      <button class="button" onclick="callAPI('/open_cuims')">CUIMS</button>
+    </div>
+
+    <div class="section">
+      <h2>Generate Content</h2>
+      <div class="action-container">
+        <button class="button" onclick="showSection('generateImage')">Generate Image</button>
+        <div class="dynamic-section hidden" id="generateImage">
+          <input
+            type="text"
+            id="imagePrompt"
+            placeholder="Enter prompt"
+            oninput="toggleButton('imagePrompt', 'generateImageBtn')"
+          />
+          <button class="button" id="generateImageBtn" disabled onclick="generateImage()">
+            Generate
+          </button>
+        </div>
+      </div>
+
+      <div class="action-container">
+        <button class="button" onclick="showSection('generatePPT')">Generate PPT</button>
+        <div class="dynamic-section hidden" id="generatePPT">
+          <input
+            type="text"
+            id="pptTopic"
+            placeholder="Enter topic"
+            oninput="toggleButton('pptTopic', 'generatePPTBtn')"
+          />
+          <button class="button" id="generatePPTBtn" disabled onclick="generatePPT()">
+            Generate
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Automation</h2>
+      <div class="action-container">
+        <button class="button" onclick="showSection('makeCall')">Make Call</button>
+        <div class="dynamic-section hidden" id="makeCall">
+          <select id="callPerson">
+            <option value="Abhi">Abhi</option>
+            <option value="Suryansh">Suryansh</option>
+            <option value="Khushi">Khushi</option>
+            <option value="Dishani">Dishani</option>
+          </select>
+          <input
+            type="text"
+            id="callTopic"
+            placeholder="Enter topic"
+            oninput="toggleButton('callTopic', 'makeCallBtn')"
+          />
+          <button class="button" id="makeCallBtn" disabled onclick="makeCall()">
+            Call
+          </button>
+        </div>
+      </div>
+
+      <div class="action-container">
+        <button class="button" onclick="showSection('writeEmail')">Write Email</button>
+        <div class="dynamic-section hidden" id="writeEmail">
+          <select id="emailPerson">
+            <option value="Abhi">Abhi</option>
+            <option value="Suryansh">Suryansh</option>
+            <option value="Khushi">Khushi</option>
+            <option value="Dishani">Dishani</option>
+          </select>
+          <input
+            type="text"
+            id="emailSubject"
+            placeholder="Enter subject"
+            oninput="toggleButton('emailSubject', 'sendEmailBtn')"
+          />
+          <button class="button" id="sendEmailBtn" disabled onclick="sendEmail()">
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Ask Nova Section -->
+    <div class="section">
+      <h2>Ask Nova</h2>
+      <input
+        type="text"
+        id="askNovaInput"
+        placeholder="Enter your question"
+        oninput="toggleButton('askNovaInput', 'askNovaBtn')"
+      />
+      <button class="button" id="askNovaBtn" disabled onclick="askNova()">Ask</button>
+      <div id="askNovaResponse" class="response-box"></div>
+    </div>
+  </div>
+
+  <script>
+    let baseUrl = localStorage.getItem('novaBaseUrl') || 'http://localhost:5000';
+    let currentSection = null;
+
+    // Enhanced API call function
+    async function callAPI(endpoint, params = {}) {
+      const errorToast = document.getElementById('errorToast');
+      try {
+        const url = new URL(baseUrl + endpoint);
+        url.search = new URLSearchParams(params).toString();
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+        const result = await response.text();
+        showSuccess(result);
+        return result;
+      } catch (error) {
+        console.error('API Error:', error);
+        showError(`Failed to fetch: ${error.message}`);
+      }
+    }
+
+    // Success/Error notifications
+    function showSuccess(message) {
+      const toast = document.createElement('div');
+      toast.className = 'error-toast';
+      toast.style.background = '#4CAF50';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      toast.style.display = 'block';
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function showError(message) {
+      const errorToast = document.getElementById('errorToast');
+      errorToast.textContent = message;
+      errorToast.style.display = 'block';
+      setTimeout(() => (errorToast.style.display = 'none'), 5000);
+    }
+
+    // Settings functions
+    function toggleSettings() {
+      const panel = document.getElementById('settingsPanel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+      document.getElementById('baseUrl').value = baseUrl;
+    }
+
+    function saveSettings() {
+      baseUrl = document.getElementById('baseUrl').value.trim();
+      localStorage.setItem('novaBaseUrl', baseUrl);
+      toggleSettings();
+      showSuccess('Settings saved successfully!');
+    }
+
+    // Form handling functions
+    function showSection(id) {
+      const section = document.getElementById(id);
+      if (currentSection === section) {
+        section.classList.add('hidden');
+        currentSection = null;
+        return;
+      }
+      document.querySelectorAll('.dynamic-section').forEach((s) => s.classList.add('hidden'));
+      section.classList.remove('hidden');
+      currentSection = section;
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dynamic-section') && !e.target.closest('.action-container .button')) {
+        document.querySelectorAll('.dynamic-section').forEach((s) => s.classList.add('hidden'));
+        currentSection = null;
+      }
+    });
+
+    function toggleButton(inputId, buttonId) {
+      const input = document.getElementById(inputId);
+      const button = document.getElementById(buttonId);
+      button.disabled = !input.value.trim();
+    }
+
+    // Specific action handlers
+    async function generateImage() {
+      const prompt = document.getElementById('imagePrompt').value;
+      const button = document.getElementById('generateImageBtn');
+      if (!prompt) return;
+
+      // Disable button and indicate loading
+      button.disabled = true;
+      button.style.opacity = '0.6';
+      showSuccess('Image generation in progress...');
+
+      try {
+        const response = await fetch(`${baseUrl}/generateimg/${encodeURIComponent(prompt)}`);
+        const data = await response.json();
+
+        if (data.image_url) {
+          window.open(data.image_url, '_blank');
+          showSuccess('Image generated successfully!');
+        } else {
+          throw new Error(data.error || 'Unknown error');
+        }
+      } catch (error) {
+        showError(`Image generation failed: ${error.message}`);
+      } finally {
+        // Re-enable button after response
+        button.disabled = false;
+        button.style.opacity = '1';
+      }
+    }
+
+    async function generatePPT() {
+      const topic = document.getElementById('pptTopic').value;
+      const button = document.getElementById('generatePPTBtn');
+      if (!topic) return;
+
+      // Disable button and show queued message
+      button.disabled = true;
+      button.style.opacity = '0.6';
+      showSuccess('PPT queued for generation...');
+
+      try {
+        const response = await fetch(`${baseUrl}/makeppt/${encodeURIComponent(topic)}`);
+        const data = await response.json();
+
+        if (data.ppt_url) {
+          window.open(data.ppt_url, '_blank');
+          showSuccess('PPT generated successfully!');
+        } else {
+          throw new Error(data.error || 'Unknown error');
+        }
+      } catch (error) {
+        showError(`PPT generation failed: ${error.message}`);
+      } finally {
+        // Re-enable button after response
+        button.disabled = false;
+        button.style.opacity = '1';
+      }
+    }
+
+    async function makeCall() {
+      const name = document.getElementById('callPerson').value;
+      const subject = document.getElementById('callTopic').value;
+      const button = document.getElementById('makeCallBtn');
+      if (!subject) return;
+
+      // Disable button and indicate loading
+      button.disabled = true;
+      button.style.opacity = '0.6';
+      showSuccess('Call initiation in progress...');
+
+      try {
+        const response = await fetch(
+          `${baseUrl}/makecall?name=${encodeURIComponent(name)}&subject=${encodeURIComponent(subject)}`
+        );
+        const data = await response.json();
+
+        if (data.output) {
+          showSuccess(`Call initiated: ${data.output}`);
+        } else {
+          throw new Error(data.error || 'Unknown error');
+        }
+      } catch (error) {
+        showError(`Call failed: ${error.message}`);
+      } finally {
+        // Re-enable button after response
+        button.disabled = false;
+        button.style.opacity = '1';
+      }
+    }
+
+    async function sendEmail() {
+      const name = document.getElementById('emailPerson').value;
+      const subject = document.getElementById('emailSubject').value;
+      const button = document.getElementById('sendEmailBtn');
+      if (!subject) return;
+
+      // Disable button and indicate loading
+      button.disabled = true;
+      button.style.opacity = '0.6';
+      showSuccess('Email sending in progress...');
+
+      try {
+        const response = await fetch(
+          `${baseUrl}/sendmail?name=${encodeURIComponent(name)}&subject=${encodeURIComponent(subject)}`
+        );
+        const data = await response.json();
+
+        if (data.output) {
+          showSuccess(`Email sent: ${data.output}`);
+        } else {
+          throw new Error(data.error || 'Unknown error');
+        }
+      } catch (error) {
+        showError(`Email sending failed: ${error.message}`);
+      } finally {
+        // Re-enable button after response
+        button.disabled = false;
+        button.style.opacity = '1';
+      }
+    }
+
+    // New Ask Nova function
+    async function askNova() {
+      const message = document.getElementById('askNovaInput').value.trim();
+      const responseDiv = document.getElementById('askNovaResponse');
+      if (!message) return;
+
+      const button = document.getElementById('askNovaBtn');
+      // Disable the Ask button and indicate loading
+      button.disabled = true;
+      button.style.opacity = '0.6';
+      responseDiv.textContent = 'Nova is thinking...';
+
+      try {
+        const response = await fetch(`${baseUrl}/ask?message=${encodeURIComponent(message)}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        // Use the 'response' field from the returned JSON
+        if (data.response) {
+          responseDiv.textContent = data.response;
+        } else {
+          responseDiv.textContent = 'No response returned.';
+        }
+      } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+      } finally {
+        // Re-enable the Ask button once we get our reply
+        button.disabled = false;
+        button.style.opacity = '1';
+      }
+    }
+  </script>
+</body>
+</html>
